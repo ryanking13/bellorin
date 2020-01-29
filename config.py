@@ -13,3 +13,6 @@ INSTAGRAM_PASSWORD = "" or os.environ.get("INSTAGRAM_PASSWORD")
 # FACEBOOK_PASSWORD = (
 #     "" or os.environ.get("FACEBOOK_PASSWORD") or die("FACEBOOK_PASSWORD not set")
 # )
+
+# for global logging, after this codes being packaged, no more needed
+LOGGER_NAME = "bellorin"

@@ -1,18 +1,19 @@
 import argparse
 from datetime import datetime, timedelta
 import logging
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from instagram import Instagram
 import config
 
 # lazy class generation, prevent side-effects
-def class_gen(c, *args):
-    return lambda: c(*args)
+def class_gen(c, *args, **kwargs):
+    return lambda: c(*args, **kwargs)
 
 
 target2crawler = {
     "instagram": class_gen(
-        Instagram, config.INSTAGRAM_EMAIL, config.INSTAGRAM_PASSWORD
+        Instagram, email=config.INSTAGRAM_EMAIL, pw=config.INSTAGRAM_PASSWORD
     ),
     # "naver-blog",
     # "tistory",
@@ -48,14 +49,23 @@ def parse_args():
 
 def main():
     args = parse_args()
-    logger = logging.getLogger(__name__)
+    logger = logging.getLogger(config.LOGGER_NAME)
+
+    logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(logging.DEBUG if args.verbose else logging.INFO)
+    logger.debug("VERBOSE MODE ON")
 
     crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
 
     today = datetime.utcnow()
     start_date = (today - timedelta(days=args.max_days - 1)).date()
     end_date = today.date()
+
+    logger.debug(f"[*] Query: {args.query}")
+    logger.debug(f"[*] Date range: {start_date}~{end_date}")
+    logger.debug(f"[*] Crawling targets: {', '.join(args.targets)}")
+
+    logger.debug("[*] Running crawlers...")
 
     pool = ThreadPoolExecutor()
     futures = [

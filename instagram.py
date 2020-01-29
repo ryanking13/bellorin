@@ -1,25 +1,29 @@
 import sys
 from datetime import datetime, timedelta
 import json
+import logging
 import pathlib
 import instaloader
 from crawler import Crawler
+import config
 
 
 class Instagram(Crawler):
-    def __init__(self, id=None, pw=None):
-        self.email = id  # TODO: not used
-        self.pw = pw  # TODO: not used
+    def __init__(self, *args, **kwargs):
+        self.email = kwargs["email"]  # TODO: not used
+        self.pw = kwargs["pw"]  # TODO: not used
         self.L = instaloader.Instaloader()
         self._query = ""
         self._done = False
         self._data = None
+        self._logger = logging.getLogger(config.LOGGER_NAME)
 
     def crawl(self, query, start_date, end_date):
         posts = []
         for post in self.L.get_hashtag_posts(query):
 
             if post.date_utc.date() < start_date or post.date_utc.date() > end_date:
+                self._log("Post out of range, stop crawling...")
                 break
 
             post_data = {
@@ -68,6 +72,7 @@ class Instagram(Crawler):
             directory.mkdir(parents=True, exist_ok=True)
             f = directory / f"instagram_{query}_{start_date}~{end_date}.json"
 
+            self._log(f"Saving results to {str(f)}")
             with open(str(f), "w", encoding="utf-8") as f:
                 f.write(dump)
 
@@ -79,6 +84,12 @@ class Instagram(Crawler):
         if not self._done:
             return []
         return self._data
+
+    def _log(self, msg, debug=True):
+        if debug:
+            self._logger.debug(f"[*] {self.__class__.__name__}: {msg}")
+        else:
+            self._logger.info(f"[*] {self.__class__.__name__}: {msg}")
 
 
 if __name__ == "__main__":

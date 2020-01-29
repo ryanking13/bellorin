@@ -3,7 +3,7 @@ from abc import ABCMeta, abstractmethod
 # Crawler interface
 class Crawler(metaclass=ABCMeta):
     @abstractmethod
-    def __init__(self, id, pw):
+    def __init__(self, *args, **kwargs):
         pass
 
     @abstractmethod
