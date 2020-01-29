@@ -163,3 +163,4 @@ $RECYCLE.BIN/
 *.json
 venv
 save
+_config.py
