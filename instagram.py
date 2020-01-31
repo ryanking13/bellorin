@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 import json
 import logging
 import pathlib
+import itertools
+import collections
 import instaloader
 from crawler import Crawler
 import config
@@ -17,21 +19,30 @@ class Instagram(Crawler):
         self._done = False
         self._data = None
         self._logger = logging.getLogger(config.LOGGER_NAME)
+        self._analyser = InstagramAnalyser()
 
     def crawl(self, query, start_date, end_date):
         posts = []
+        cur_date = None
         for post in self.L.get_hashtag_posts(query):
 
             if post.date_utc.date() < start_date or post.date_utc.date() > end_date:
                 self._log("Post out of range, stop crawling...")
                 break
 
+            # Date logging (for progress checking)
+            if post.date_utc.date() != cur_date:
+                cur_date = post.date_utc.date()
+                self._log(f"crawling on date={cur_date}")
+
             post_data = {
                 "id": post.shortcode,
                 "username": post.profile,
                 "userId": post.owner_id,
+                "profileUrl": f"https://instagram.com/{post.profile}",
+                "postUrl": f"https://instagram.com/p/{post.shortcode}",
                 "created": post.date_utc.isoformat(),
-                "url": post.url,
+                "imageUrl": post.url,
                 "text": post.caption,
                 "hashtags": post.caption_hashtags,
                 "comments": [
@@ -63,16 +74,35 @@ class Instagram(Crawler):
         self._data = posts
         return posts
 
-    def run(self, query, start_date, end_date, auto_save=True, save_dir="save"):
+    def run(
+        self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
+    ):
         posts = self.crawl(query, start_date, end_date)
-        dump = json.dumps(posts, indent=2, ensure_ascii=False)
-
-        if auto_save:
+        if save:
+            dump = json.dumps(posts, indent=2, ensure_ascii=False)
             directory = pathlib.Path(save_dir)
             directory.mkdir(parents=True, exist_ok=True)
-            f = directory / f"instagram_{query}_{start_date}~{end_date}.json"
+            f = (
+                directory
+                / f"{self.__class__.__name__}_{query}_{start_date}~{end_date}.json"
+            )
 
-            self._log(f"Saving results to {str(f)}")
+            self._log(f"Saving results to {str(f)}", False)
+            with open(str(f), "w", encoding="utf-8") as f:
+                f.write(dump)
+
+        if analyse:
+            self._log(f"Analysing result...")
+            analysed_data = self.analyse()
+            dump = json.dumps(analysed_data, indent=2, ensure_ascii=False)
+
+            diectory = pathlib.Path(save_dir)
+            directory.mkdir(parents=True, exist_ok=True)
+            f = (
+                diectory
+                / f"{self.__class__.__name__}_{query}_{start_date}~{end_date}_analysed.json"
+            )
+            self._log(f"Saving analysed results to {str(f)}", False)
             with open(str(f), "w", encoding="utf-8") as f:
                 f.write(dump)
 
@@ -85,11 +115,37 @@ class Instagram(Crawler):
             return []
         return self._data
 
+    def analyse(self):
+        if not self._done:
+            return []
+        return self._analyser.run(self._data)
+
     def _log(self, msg, debug=True):
         if debug:
             self._logger.debug(f"[*] {self.__class__.__name__}: {msg}")
         else:
             self._logger.info(f"[*] {self.__class__.__name__}: {msg}")
+
+
+class InstagramAnalyser:
+    def __init__(self):
+        pass
+
+    def _hashtag_usage(self, data):
+        hashtags = itertools.chain.from_iterable([d["hashtags"] for d in data])
+        hashtags_cnt = collections.Counter(hashtags)
+        return collections.OrderedDict(hashtags_cnt.most_common())
+
+    def _users(self, data):
+        usernames = [d["username"] for d in data]
+        usernames_cnt = collections.Counter(usernames)
+        return collections.OrderedDict(usernames_cnt.most_common())
+
+    def run(self, data):
+        return {
+            "hashtags_count": self._hashtag_usage(data),
+            "users_count": self._users(data),
+        }
 
 
 if __name__ == "__main__":
