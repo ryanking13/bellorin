@@ -18,7 +18,9 @@ class Instagram(Crawler):
         self._query = ""
         self._done = False
         self._data = None
-        self._logger = logging.getLogger(config.LOGGER_NAME)
+        self._logger = logging.getLogger(
+            config.LOGGER_NAME
+        )  # when packaged, change this to logger.getLogger(__name__)
         self._analyser = InstagramAnalyser()
 
     def crawl(self, query, start_date, end_date):
