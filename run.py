@@ -4,6 +4,7 @@ import logging
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from instagram import Instagram
+from naver_blog import NaverBlog
 import config
 
 # lazy class generation, prevent side-effects
@@ -12,12 +13,13 @@ def class_gen(c, *args, **kwargs):
 
 
 target2crawler = {
-    "instagram": class_gen(
-        Instagram, email=config.INSTAGRAM_EMAIL, pw=config.INSTAGRAM_PASSWORD
+    # "instagram": class_gen(
+    #     Instagram, email=config.INSTAGRAM_EMAIL, pw=config.INSTAGRAM_PASSWORD
+    # ),
+    "naver-blog": class_gen(
+        NaverBlog, id=config.NAVER_CLIENT_ID, secret=config.NAVER_CLIENT_SECRET
     ),
-    # "naver-blog",
     # "tistory",
-    # "twitter",
 }
 
 targets = target2crawler.keys()

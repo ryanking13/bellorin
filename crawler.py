@@ -7,8 +7,13 @@ class Crawler(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def crawl(self, query, start_date, end_date):
+    def crawl(self, query, start_date, end_date, *args, **kwargs):
         """crawl method should scrap data related to `query` with range [`start_date`, `end_date]"""
+        pass
+
+    @abstractmethod
+    def run(self, *args, **kwargs):
+        """run method should be an entry point of Crawler behavior"""
         pass
 
     @property
