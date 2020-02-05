@@ -27,7 +27,7 @@ targets = target2crawler.keys()
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("query", help="Query to crawl")
+    parser.add_argument("query", nargs="+", help="Query to crawl")
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Print all debug logs"
     )
@@ -68,8 +68,6 @@ def main():
         logger.debug(f"Saving log to: {args.output}")
         logger.addHandler(logging.FileHandler(args.output, encoding="utf-8", mode="w"))
 
-    crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
-
     today = datetime.utcnow()
     start_date = (today - timedelta(days=args.max_days - 1)).date()
     end_date = today.date()
@@ -81,9 +79,12 @@ def main():
     logger.debug("[*] Running crawlers...")
 
     pool = ThreadPoolExecutor()
-    futures = [
-        pool.submit(c.run, args.query, start_date, end_date) for c in crawling_targets
-    ]
+    futures = []
+    for q in args.query:
+        crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
+        futures.extend(
+            [pool.submit(c.run, q, start_date, end_date) for c in crawling_targets]
+        )
 
     for completed in as_completed(futures):
         print(f"[+] Done - {completed.result()}")
