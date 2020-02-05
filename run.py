@@ -53,6 +53,10 @@ def parse_args():
         help="Set output log file. if not specified, log will be printed only to stdout",
     )
 
+    parser.add_argument(
+        "--no-analyse", action="store_const", default=True, const=False, dest="analyse"
+    )
+
     return parser.parse_args()
 
 
@@ -83,7 +87,21 @@ def main():
     for q in args.query:
         crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
         futures.extend(
-            [pool.submit(c.run, q, start_date, end_date) for c in crawling_targets]
+            [
+                pool.submit(
+                    lambda query, start_date, end_date, analyse: c.run(
+                        query=query,
+                        start_date=start_date,
+                        end_date=end_date,
+                        analyse=analyse,
+                    ),
+                    q,
+                    start_date,
+                    end_date,
+                    args.analyse,
+                )
+                for c in crawling_targets
+            ]
         )
 
     try:
