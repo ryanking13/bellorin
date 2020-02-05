@@ -27,50 +27,56 @@ class Instagram(Crawler):
         posts = []
         self._query = query
         cur_date = None
-        for post in self.L.get_hashtag_posts(query):
 
-            if post.date_utc.date() < start_date or post.date_utc.date() > end_date:
-                self._log("Post out of range, stop crawling...")
-                break
+        try:
+            for post in self.L.get_hashtag_posts(query):
 
-            # Date logging (for progress checking)
-            if post.date_utc.date() != cur_date:
-                cur_date = post.date_utc.date()
-                self._log(f"crawling on date={cur_date}")
+                if post.date_utc.date() < start_date or post.date_utc.date() > end_date:
+                    self._log("Post out of range, stop crawling...")
+                    break
 
-            post_data = {
-                "id": post.shortcode,
-                "username": post.profile,
-                "userId": post.owner_id,
-                "profileUrl": f"https://instagram.com/{post.profile}",
-                "postUrl": f"https://instagram.com/p/{post.shortcode}",
-                "created": post.date_utc.isoformat(),
-                "imageUrl": post.url,
-                "text": post.caption,
-                "hashtags": post.caption_hashtags,
-                "comments": [
-                    {
-                        "id": comment.id,
-                        "userId": comment.owner.userid,
-                        "username": comment.owner.username,
-                        "text": comment.text,
-                        "created": comment.created_at_utc.isoformat(),
-                        "answers": [
-                            {
-                                "id": answer.id,
-                                "userId": answer.owner.userid,
-                                "username": answer.owner.username,
-                                "text": answer.text,
-                                "created": answer.created_at_utc.isoformat(),
-                            }
-                            for answer in comment.answers
-                        ],
-                    }
-                    for comment in post.get_comments()
-                ],
-            }
+                # Date logging (for progress checking)
+                if post.date_utc.date() != cur_date:
+                    cur_date = post.date_utc.date()
+                    self._log(f"crawling on date={cur_date}")
 
-            posts.append(post_data)
+                post_data = {
+                    "id": post.shortcode,
+                    "username": post.profile,
+                    "userId": post.owner_id,
+                    "profileUrl": f"https://instagram.com/{post.profile}",
+                    "postUrl": f"https://instagram.com/p/{post.shortcode}",
+                    "created": post.date_utc.isoformat(),
+                    "imageUrl": post.url,
+                    "text": post.caption,
+                    "hashtags": post.caption_hashtags,
+                    "comments": [
+                        {
+                            "id": comment.id,
+                            "userId": comment.owner.userid,
+                            "username": comment.owner.username,
+                            "text": comment.text,
+                            "created": comment.created_at_utc.isoformat(),
+                            "answers": [
+                                {
+                                    "id": answer.id,
+                                    "userId": answer.owner.userid,
+                                    "username": answer.owner.username,
+                                    "text": answer.text,
+                                    "created": answer.created_at_utc.isoformat(),
+                                }
+                                for answer in comment.answers
+                            ],
+                        }
+                        for comment in post.get_comments()
+                    ],
+                }
+
+                posts.append(post_data)
+
+        # when there is no post at all
+        except instaloader.exceptions.QueryReturnedNotFoundException:
+            pass
 
         # print(posts)
         self._done = True
