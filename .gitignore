@@ -164,3 +164,4 @@ $RECYCLE.BIN/
 venv
 save
 _config.py
+*.log

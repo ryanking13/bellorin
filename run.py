@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime, timedelta
 import logging
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from instagram import Instagram
 from naver_blog import NaverBlog
 import config
@@ -13,9 +13,9 @@ def class_gen(c, *args, **kwargs):
 
 
 target2crawler = {
-    # "instagram": class_gen(
-    #     Instagram, email=config.INSTAGRAM_EMAIL, pw=config.INSTAGRAM_PASSWORD
-    # ),
+    "instagram": class_gen(
+        Instagram, email=config.INSTAGRAM_EMAIL, pw=config.INSTAGRAM_PASSWORD
+    ),
     "naver-blog": class_gen(
         NaverBlog, id=config.NAVER_CLIENT_ID, secret=config.NAVER_CLIENT_SECRET
     ),
@@ -46,6 +46,13 @@ def parse_args():
         type=int,
     )
 
+    parser.add_argument(
+        "-o",
+        "--output",
+        default=None,
+        help="Set output log file. if not specified, log will be printed only to stdout",
+    )
+
     return parser.parse_args()
 
 
@@ -56,6 +63,10 @@ def main():
     logger.addHandler(logging.StreamHandler(sys.stdout))
     logger.setLevel(logging.DEBUG if args.verbose else logging.INFO)
     logger.debug("VERBOSE MODE ON")
+
+    if args.output is not None:
+        logger.debug(f"Saving log to: {args.output}")
+        logger.addHandler(logging.FileHandler(args.output, encoding="utf-8", mode="w"))
 
     crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
 
@@ -69,7 +80,7 @@ def main():
 
     logger.debug("[*] Running crawlers...")
 
-    pool = ThreadPoolExecutor()
+    pool = ProcessPoolExecutor()
     futures = [
         pool.submit(c.run, args.query, start_date, end_date) for c in crawling_targets
     ]
