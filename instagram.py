@@ -25,6 +25,7 @@ class Instagram(Crawler):
 
     def crawl(self, query, start_date, end_date):
         posts = []
+        self._query = query
         cur_date = None
         for post in self.L.get_hashtag_posts(query):
 
@@ -124,9 +125,9 @@ class Instagram(Crawler):
 
     def _log(self, msg, debug=True):
         if debug:
-            self._logger.debug(f"[*] {self.__class__.__name__}: {msg}")
+            self._logger.debug(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
         else:
-            self._logger.info(f"[*] {self.__class__.__name__}: {msg}")
+            self._logger.info(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
 
 
 class InstagramAnalyser:

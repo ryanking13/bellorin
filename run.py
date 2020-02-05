@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime, timedelta
 import logging
 import sys
-from concurrent.futures import ProcessPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from instagram import Instagram
 from naver_blog import NaverBlog
 import config
@@ -80,7 +80,7 @@ def main():
 
     logger.debug("[*] Running crawlers...")
 
-    pool = ProcessPoolExecutor()
+    pool = ThreadPoolExecutor()
     futures = [
         pool.submit(c.run, args.query, start_date, end_date) for c in crawling_targets
     ]

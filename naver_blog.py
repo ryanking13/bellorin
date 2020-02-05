@@ -32,7 +32,7 @@ class NaverBlog(Crawler):
         )
 
     def _parse_post(self, username, postId):
-        self._log(f"trying to collect full post data from {username}/{postId}")
+        # self._log(f"trying to collect full post data from {username}/{postId}")
         url = "https://blog.naver.com/PostView.nhn"
         params = {
             "blogId": username,
@@ -118,13 +118,15 @@ class NaverBlog(Crawler):
 
     def crawl(self, query, start_date, end_date, full=True):
         url = "https://openapi.naver.com/v1/search/blog.json"
+        display_size = 100
         params = {
             "query": query,
-            "display": 100,
+            "display": display_size,
             "start": 1,
             "sort": "date",
         }
 
+        self._query = query
         posts = []
         stop = False
         cur_date = None
@@ -197,7 +199,13 @@ class NaverBlog(Crawler):
                 self._log("No more item, stop crawling...")
                 break
 
-            params["start"] += 1
+            # search result maximum exceeded
+            # Reference: https://developers.naver.com/forum/posts/10120
+            if resp["start"] + resp["display"] >= 1100:
+                self._log("No more item, stop crawling...")
+                break
+
+            params["start"] += display_size
 
         self._done = True
         self._data = posts
@@ -251,6 +259,6 @@ class NaverBlog(Crawler):
 
     def _log(self, msg, debug=True):
         if debug:
-            self._logger.debug(f"[*] {self.__class__.__name__}: {msg}")
+            self._logger.debug(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
         else:
-            self._logger.info(f"[*] {self.__class__.__name__}: {msg}")
+            self._logger.info(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
