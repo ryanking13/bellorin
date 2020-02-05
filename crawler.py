@@ -23,6 +23,6 @@ class Crawler(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def analyse(self):
+    def analyse(self, data=None):
         """analyse method should return analysed result from scraped data"""
         pass

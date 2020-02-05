@@ -12,8 +12,8 @@ import config
 
 class Instagram(Crawler):
     def __init__(self, *args, **kwargs):
-        self.email = kwargs["email"]  # TODO: not used
-        self.pw = kwargs["pw"]  # TODO: not used
+        self.email = kwargs.get("email", "")  # TODO: not used
+        self.pw = kwargs.get("pw", "")  # TODO: not used
         self.L = instaloader.Instaloader()
         self._query = ""
         self._done = False
@@ -124,10 +124,13 @@ class Instagram(Crawler):
             return []
         return self._data
 
-    def analyse(self):
-        if not self._done:
-            return []
-        return self._analyser.run(self._data)
+    def analyse(self, data=None):
+        if data is not None:
+            return self._analyser.run(data)
+        else:
+            if not self._done:
+                return []
+            return self._analyser.run(self._data)
 
     def _log(self, msg, debug=True):
         if debug:

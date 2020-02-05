@@ -252,10 +252,13 @@ class NaverBlog(Crawler):
             return []
         return self._data
 
-    def analyse(self):
-        if not self._done:
-            return []
-        return self._analyser.run(self._data)
+    def analyse(self, data=None):
+        if data is not None:
+            return self._analyser.run(data)
+        else:
+            if not self._done:
+                return []
+            return self._analyser.run(self._data)
 
     def _log(self, msg, debug=True):
         if debug:
