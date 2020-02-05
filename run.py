@@ -2,7 +2,7 @@ import argparse
 from datetime import datetime, timedelta
 import logging
 import sys
-from concurrent.futures import ThreadPoolExecutor, as_completed
+import concurrent.futures
 from instagram import Instagram
 from naver_blog import NaverBlog
 import config
@@ -78,7 +78,7 @@ def main():
 
     logger.debug("[*] Running crawlers...")
 
-    pool = ThreadPoolExecutor()
+    pool = concurrent.futures.ThreadPoolExecutor()
     futures = []
     for q in args.query:
         crawling_targets = [target2crawler[target.lower()]() for target in args.targets]
@@ -86,8 +86,16 @@ def main():
             [pool.submit(c.run, q, start_date, end_date) for c in crawling_targets]
         )
 
-    for completed in as_completed(futures):
-        print(f"[+] Done - {completed.result()}")
+    try:
+        for completed in concurrent.futures.as_completed(futures):
+            print(f"[+] Done - {completed.result()}")
+    except KeyboardInterrupt:
+        # https://gist.github.com/clchiou/f2608cbe54403edb0b13
+        pool._threads.clear()
+        concurrent.futures.thread._threads_queues.clear()
+        raise
+
+    pool.shutdown()
 
 
 if __name__ == "__main__":
