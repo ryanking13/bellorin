@@ -9,10 +9,10 @@ import pprint
 def main():
 
     if len(sys.argv) < 2:
-        print(f"Usage: python {sys.argv[0]} <target_instagram_data>")
-        exit(1)
-
-    fname = sys.argv[1]
+        fname = "Instagram_THORNAPPLE_2020-02-05~2020-02-05.json"
+    else:
+        fname = sys.argv[1]
+        
     with open(fname, "r", encoding="utf-8") as f:
         data = json.loads(f.read())
 

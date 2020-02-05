@@ -165,3 +165,4 @@ venv
 save
 _config.py
 *.log
+!examples/*.json
