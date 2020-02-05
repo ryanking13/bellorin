@@ -39,3 +39,7 @@ python run.py bellorin
 ```sh
 python run.py bellorin -t naver-blog -d 10 -o out.log
 ```
+
+### Miscellaneous
+
+- The name `Bellorin` came from the novel [Polaris Rhapsody](https://en.wikipedia.org/wiki/Lee_Yeongdo#Other_novels) by _Lee Yeongdo(이영도)_, Bellorin is a girl who knows everything in the world.
