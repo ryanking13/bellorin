@@ -1,6 +1,8 @@
 from datetime import datetime
+import itertools
 import re
 import json
+import time
 import logging
 import pathlib
 import requests
@@ -39,8 +41,80 @@ class NaverBlog(Crawler):
 
         r = self._session.get(url=url, params=params)
         soup = BeautifulSoup(r.text, "html.parser")
-        # TODO: parsing blog content
-        return {}
+
+        title = ""
+        nickname = ""
+        content = ""
+
+        # 1) title
+
+        # 네이버 블로그에서 제목에 사용되는 클래스 목록
+        #! WARNING: 실험적으로 찾아낸 값으로, 상황에 따라 업데이트 필요
+        title_class = (
+            "se-title-text",  # 네이버 포스트 스타일 블로그: <div class="se-module se-module-text se-title-text">
+            "se_title",  # 네이버 포스트 스타일 블로그: <div class="se_editView se_title">
+            "itemSubjectBoldfont",  # 예전 버전 블로그: <span class="pcol1 itemSubjectBoldfont">
+        )
+
+        found = False
+        for tag in itertools.chain(soup.find_all("div"), soup.find_all("span")):
+            tag_class = tag.get("class", [])
+            for tcls in title_class:
+                if tcls in tag_class:
+                    title = tag.text.strip()
+                    found = True
+                    break
+            if found:
+                break
+        else:  # not found
+            self._log(f"NOT FOUND: title ({username}/{postId})", False)
+
+        # 2) nickname
+
+        # 네이버 블로그에서 유저 닉네임에 사용되는 클래스 목록
+        #! WARNING: 실험적으로 찾아낸 값으로, 상황에 따라 업데이트 필요
+        nickname_class = ("nick",)  # <strong class="itemfont col" id="nickNameArea">
+        found = False
+        for tag in soup.find_all("strong"):
+            tag_class = tag.get("class", [])
+            for ncls in nickname_class:
+                if ncls in tag_class:
+                    nickname = tag.text.strip()
+                    found = True
+                    break
+            if found:
+                break
+        else:  # not found
+            self._log(f"NOT FOUND: nickname ({username}/{postId})", False)
+
+        # 3) content
+
+        # 네이버 블로그에서 글 내용에 사용되는 클래스 목록
+        #! WARNING: 실험적으로 찾아낸 값으로, 상황에 따라 업데이트 필요
+        content_class = (
+            "__se_component_area",  # 네이버 포스트 스타일 블로그: <div class="se_component_wrap sect_dsc __se_component_area">
+            "se-main-container",  # 네이버 포스트 스타일 블로그: <div class="se-main-container">
+            "post-view",  # 예전 버전 블로그: <div id="post-view{postId}" class="post-view pcol2 _param(1) _postViewArea{postId}">
+        )
+        found = False
+        for tag in soup.find_all("div"):
+            tag_class = tag.get("class", [])
+            for ccls in content_class:
+                if ccls in tag_class:
+                    content = tag.text.strip()
+                    content = re.sub(r"\s+", " ", content)  # compress whitespaces
+                    found = True
+                    break
+            if found:
+                break
+        else:  # not found
+            self._log(f"NOT FOUND: content ({username}/{postId})", False)
+
+        return {
+            "title": title,
+            "nickname": nickname,
+            "content": content,
+        }
 
     def crawl(self, query, start_date, end_date, full=True):
         url = "https://openapi.naver.com/v1/search/blog.json"
@@ -107,8 +181,11 @@ class NaverBlog(Crawler):
                 if full:
                     try:
                         post_full = self._parse_post(username, postId)
-                    except:
+                        post_data.update(post_full)
+                        time.sleep(0.1)  # prevent massive request
+                    except Exception as e:
                         self._log(f"Parsing blog failed {username} / {postId}", False)
+                        self._log(e)
                         pass
                 posts.append(post_data)
 
