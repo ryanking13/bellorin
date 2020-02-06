@@ -23,6 +23,8 @@ except:
     NAVER_CLIENT_ID = "" or os.environ.get("NAVER_CLIENT_ID")
     NAVER_CLIENT_SECRET = "" or os.environ.get("NAVER_CLIENT_SECRET")
 
+    KAKAO_REST_API_KEY = "" or os.environ.get("KAKAO_REST_API_KEY")
+
     # FACEBOOK_EMAIL = "" or os.environ.get("FACEBOOK_EMAIL") or die("FACEBOOK_EMAIL not set")
     # FACEBOOK_PASSWORD = (
     #     "" or os.environ.get("FACEBOOK_PASSWORD") or die("FACEBOOK_PASSWORD not set")

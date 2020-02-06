@@ -5,6 +5,7 @@ import sys
 import concurrent.futures
 from instagram import Instagram
 from naver_blog import NaverBlog
+from tistory import Tistory
 import config
 
 # lazy class generation, prevent side-effects
@@ -19,7 +20,7 @@ target2crawler = {
     "naver-blog": class_gen(
         NaverBlog, id=config.NAVER_CLIENT_ID, secret=config.NAVER_CLIENT_SECRET
     ),
-    # "tistory",
+    "tistory": class_gen(Tistory, key=config.KAKAO_REST_API_KEY),
 }
 
 targets = target2crawler.keys()
