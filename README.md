@@ -6,6 +6,13 @@ Social Media Crawler
 
 > pip install -r requirements.txt
 
+## Available Social Media
+
+- Instagram
+- Naver Blog
+  - [Naver API required](https://developers.naver.com/products/search/)
+
+
 ## Usage
 
 ```sh
