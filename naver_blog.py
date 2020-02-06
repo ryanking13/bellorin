@@ -232,6 +232,7 @@ class NaverBlog(Crawler):
             with open(str(f), "w", encoding="utf-8") as f:
                 f.write(dump)
 
+        # TODO
         # if analyse:
         #     self._log(f"Analysing result...")
         #     analysed_data = self.analyse()
