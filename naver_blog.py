@@ -133,8 +133,12 @@ class NaverBlog(Crawler):
         while True:
             r = self._session.get(url=url, params=params)
             if not r.ok:
-                self._log(f"FAILED ({r.status_code}/)", False)
-                return posts
+                if r.status_code == 401:
+                    self._log("ERROR: NAVER API 키를 설정하세요", False)
+                    return posts
+                else:  # Undefined status codes
+                    self._log(f"FAILED ({r.status_code}/{r.text})", False)
+                    return posts
 
             resp = r.json()
             for item in resp["items"]:
