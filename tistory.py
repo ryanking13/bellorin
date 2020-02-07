@@ -129,7 +129,7 @@ class Tistory(Crawler):
                     try:
                         post_full = self._parse_post(document["url"])
                         post_data.update(post_full)
-                        time.sleep(0.1)  # prevent massive request
+                        time.sleep(config.REQUEST_INTERVAL)  # prevent massive request
                     except Exception as e:
                         self._log(f"Parsing blog failed {document['url']}", False)
                         self._log(e)

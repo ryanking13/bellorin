@@ -195,7 +195,7 @@ class NaverCafe(Crawler):
                 try:
                     post_full = self._parse_post(item["link"])
                     post_data.update(post_full)
-                    time.sleep(0.1)  # prevent massive request
+                    time.sleep(config.REQUEST_INTERVAL)  # prevent massive request
                 except Exception as e:
                     self._log(f"Parsing cafe failed {item['link']}", False)
                     self._log(e)

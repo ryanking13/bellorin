@@ -33,3 +33,6 @@ except:
     # for global logging, after this codes being packaged, no more needed
     LOGGER_NAME = "bellorin"
 
+    # seconds to sleep between each requests (per target)
+    REQUEST_INTERVAL = 0.5
+
