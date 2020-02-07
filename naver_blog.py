@@ -28,15 +28,17 @@ class NaverBlog(Crawler):
             {
                 "X-Naver-Client-Id": self.client_id,
                 "X-Naver-Client-Secret": self.client_secret,
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36",
+                "Referer": "https://blog.naver.com/PostView.nhn",
             }
         )
 
-    def _parse_post(self, username, postId):
-        # self._log(f"trying to collect full post data from {username}/{postId}")
+    def _parse_post(self, username, post_id):
+        # self._log(f"trying to collect full post data from {username}/{post_id}")
         url = "https://blog.naver.com/PostView.nhn"
         params = {
             "blogId": username,
-            "logNo": postId,
+            "logNo": post_id,
         }
 
         r = self._session.get(url=url, params=params)
@@ -45,6 +47,8 @@ class NaverBlog(Crawler):
         title = ""
         nickname = ""
         content = ""
+        comments = []
+        blog_id = re.findall(r"var blogNo = \'(\d+)\';", r.text)[0]
 
         # 1) title
 
@@ -67,7 +71,7 @@ class NaverBlog(Crawler):
             if found:
                 break
         else:  # not found
-            self._log(f"NOT FOUND: title ({username}/{postId})", False)
+            self._log(f"NOT FOUND: title ({username}/{post_id})", False)
 
         # 2) nickname
 
@@ -85,7 +89,7 @@ class NaverBlog(Crawler):
             if found:
                 break
         else:  # not found
-            self._log(f"NOT FOUND: nickname ({username}/{postId})", False)
+            self._log(f"NOT FOUND: nickname ({username}/{post_id})", False)
 
         # 3) content
 
@@ -94,7 +98,7 @@ class NaverBlog(Crawler):
         content_class = (
             "__se_component_area",  # 네이버 포스트 스타일 블로그: <div class="se_component_wrap sect_dsc __se_component_area">
             "se-main-container",  # 네이버 포스트 스타일 블로그: <div class="se-main-container">
-            "post-view",  # 예전 버전 블로그: <div id="post-view{postId}" class="post-view pcol2 _param(1) _postViewArea{postId}">
+            "post-view",  # 예전 버전 블로그: <div id="post-view{post_id}" class="post-view pcol2 _param(1) _postViewArea{post_id}">
         )
         found = False
         for tag in soup.find_all("div"):
@@ -108,12 +112,73 @@ class NaverBlog(Crawler):
             if found:
                 break
         else:  # not found
-            self._log(f"NOT FOUND: content ({username}/{postId})", False)
+            self._log(f"NOT FOUND: content ({username}/{post_id})", False)
+
+        # 4) comments
+        comment_url = "https://apis.naver.com/commentBox/cbox/web_naver_list_jsonp.json"
+        params = {
+            "ticket": "blog",
+            "lang": "ko",
+            "showReply": "true",
+            "groupId": blog_id,
+            "objectId": f"{blog_id}_201_{post_id}",
+            "pool": "cbox9",
+            "listType": "OBJECT",
+            "cleanbotGrade": "2",
+            "replyPageSize": "10",
+            "useAltSort": "true",
+            "initialize": "true",
+            "page": "1",
+            "pageType": "default",
+            "indexSize": "10",
+            "pageSize": "50",
+            "templateId": "default",
+            "_callback": "X",
+        }
+
+        self._session.headers.update({})
+        r = self._session.get(url=comment_url, params=params)
+
+        # response: X(<json_data>);
+        _resp = json.loads(r.text.strip()[2:-2])
+        if not _resp["success"]:
+            self._log(f"NOT FOUND: comment ({username}/{post_id})", False)
+        else:
+            # comments returned at timestamp desc order
+            # therefore, to efficiently match comment-reply, reverse order
+            _comments = reversed(_resp["result"]["commentList"])
+
+            for c in _comments:
+                cmt = {
+                    "id": c["commentNo"],
+                    "content": c["contents"],
+                    "username": c["profileUserId"],
+                    "nickname": c["userName"],
+                    "created": c["regTime"],
+                    "replies": [],
+                }
+
+                # 답글
+                if c["replyLevel"] > 1:
+                    for _cmt in comments:
+                        if _cmt["id"] == c["parentCommentNo"]:
+                            _cmt["replies"].append(cmt)
+                            break
+                    else:
+                        self._log(
+                            f"Parent comment not exists: ({username}/{post_id} {cmt['content']})",
+                            False,
+                        )
+                # 댓글
+                else:
+                    comments.append(cmt)
 
         return {
             "title": title,
             "nickname": nickname,
             "content": content,
+            "blogId": blog_id,
+            "comments": comments,
         }
 
     def crawl(self, query, start_date, end_date, full=True):
@@ -157,12 +222,12 @@ class NaverBlog(Crawler):
                     cur_date = postdate.date()
                     self._log(f"crawling on date={cur_date}")
 
-                # parse username and postId,
+                # parse username and post_id,
                 # `bloggerlink` will be like: `https://blog.naver.com/<username>
-                # `link` will be like: `https://blog.naver.com/<username>?Redirect=Log&logNo=<postId>`
+                # `link` will be like: `https://blog.naver.com/<username>?Redirect=Log&logNo=<post_id>`
                 try:
                     username = item["bloggerlink"].split("/")[-1]
-                    postId = re.findall(r"logNo=(\d+)", item["link"])[0]
+                    post_id = re.findall(r"logNo=(\d+)", item["link"])[0]
                 except:
                     self._log(
                         f"username / post ID Parsing FAILED {item['bloggerlink']} / {item['link']}",
@@ -172,7 +237,7 @@ class NaverBlog(Crawler):
                     break
 
                 post_data = {
-                    "id": postId,
+                    "id": post_id,
                     "username": username,
                     "blogname": item["bloggername"],
                     "blogUrl": item["bloggerlink"],
@@ -186,11 +251,11 @@ class NaverBlog(Crawler):
                 # however, this might be considered as an malicious behavior.
                 if full:
                     try:
-                        post_full = self._parse_post(username, postId)
+                        post_full = self._parse_post(username, post_id)
                         post_data.update(post_full)
                         time.sleep(config.REQUEST_INTERVAL)  # prevent massive request
                     except Exception as e:
-                        self._log(f"Parsing blog failed {username} / {postId}", False)
+                        self._log(f"Parsing blog failed {username} / {post_id}", False)
                         self._log(e)
                         pass
                 posts.append(post_data)
