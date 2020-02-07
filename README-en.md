@@ -1,6 +1,6 @@
 # Bellorin
 
-Social Media Crawler
+Keyword based Social Media crawler
 
 ## Installation
 
@@ -41,16 +41,55 @@ optional arguments:
   --no-analyse          Do not analyse scrapped data after crawling
 ```
 
-__Sample Usage__
+### Prerequisite
+
+Set API keys in `config.py`.
+
+You can get API KEYs at links below.
+
+- [NAVER](https://developers.naver.com/products/search/)
+- [KAKAO](https://developers.kakao.com/docs/restapi/search)
+
+> Writing directly to `config.py` is not recommended. Use environment variables or copy `config.py` to `_config.py` and modify `_config.py`.
+
+### Simple Usage
 
 ```sh
-python run.py bellorin
+python run.py thornapple bandthornapple
 # python run.py <query>
-# python run.py <query> <query2> ...
+# python run.py <query1> <query2> ...
 ```
 
+Every collected data is saved at `save/` directory. 
+
+### Advanced Usage
+
+#### Specifying target platforms
+
 ```sh
-python run.py bellorin -t naver-blog -d 10 -o out.log
+# Collects data from Naver Blog and Naver Cafe
+python run.py thornapple -t naver-blog naver-cafe
+```
+
+By using `-t` option, you can specify target platforms to scrap data.
+
+#### Setting date range
+
+```sh
+# From today, to 30 days before
+python run.py thornapple -d 30
+```
+
+By using `-d` option, you can change date range.
+
+#### Other
+
+```sh
+# Verbose mode
+python run.py thornapple -v
+
+# Save log to specified file
+python run.py thornapple -o out.log
 ```
 
 ### Miscellaneous

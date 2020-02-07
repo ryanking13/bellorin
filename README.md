@@ -2,7 +2,7 @@
 
 키워드 기반 소셜 미디어(SNS) 크롤러
 
-[English version](./README-en.md)
+[README English version](./README-en.md)
 
 ## Installation
 
@@ -10,13 +10,13 @@
 
 ## Available Social Media
 
-- Instagram
-- Naver Blog
-  - [Naver API required](https://developers.naver.com/products/search/)
-- Naver Cafe
-  - [Naver API required](https://developers.naver.com/products/search/)
-- Tistory
-  - [Kakao REST API required](https://developers.kakao.com/docs/restapi/search)
+- 인스타그램
+- 네이버 블로그
+  - [Naver API 필요](https://developers.naver.com/products/search/)
+- 네이버 카페
+  - [Naver API 필요](https://developers.naver.com/products/search/)
+- 티스토리
+  - [Kakao REST API 필요](https://developers.kakao.com/docs/restapi/search)
 
 
 ## Usage
