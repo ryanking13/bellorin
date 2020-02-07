@@ -11,12 +11,17 @@ Social Media Crawler
 - Instagram
 - Naver Blog
   - [Naver API required](https://developers.naver.com/products/search/)
+- Naver Cafe
+  - [Naver API required](https://developers.naver.com/products/search/)
+- Tistory
+  - [Kakao REST API required](https://developers.kakao.com/features/kakao)
 
 
 ## Usage
 
 ```sh
 usage: run.py [-h] [-v] [-t TARGETS [TARGETS ...]] [-d MAX_DAYS] [-o OUTPUT]
+              [--no-analyse]
               query [query ...]
 
 positional arguments:
@@ -27,12 +32,13 @@ optional arguments:
   -v, --verbose         Print all debug logs
   -t TARGETS [TARGETS ...], --targets TARGETS [TARGETS ...]
                         Targets services to crawl (default: instagram naver-
-                        blog)
+                        blog naver-cafe tistory)
   -d MAX_DAYS, --max-days MAX_DAYS
                         Days to crawl (start from today, going backwards)
   -o OUTPUT, --output OUTPUT
                         Set output log file. if not specified, log will be
                         printed only to stdout
+  --no-analyse          Do not analyse scrapped data after crawling
 ```
 
 __Sample Usage__

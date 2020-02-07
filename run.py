@@ -59,7 +59,12 @@ def parse_args():
     )
 
     parser.add_argument(
-        "--no-analyse", action="store_const", default=True, const=False, dest="analyse"
+        "--no-analyse",
+        action="store_const",
+        default=True,
+        const=False,
+        dest="analyse",
+        help="Do not analyse scrapped data after crawling",
     )
 
     return parser.parse_args()
