@@ -5,6 +5,7 @@ import sys
 import concurrent.futures
 from instagram import Instagram
 from naver_blog import NaverBlog
+from naver_cafe import NaverCafe
 from tistory import Tistory
 import config
 
@@ -19,6 +20,9 @@ target2crawler = {
     ),
     "naver-blog": class_gen(
         NaverBlog, id=config.NAVER_CLIENT_ID, secret=config.NAVER_CLIENT_SECRET
+    ),
+    "naver-cafe": class_gen(
+        NaverCafe, id=config.NAVER_CLIENT_ID, secret=config.NAVER_CLIENT_SECRET
     ),
     "tistory": class_gen(Tistory, key=config.KAKAO_REST_API_KEY),
 }
