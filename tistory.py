@@ -32,13 +32,13 @@ class Tistory(Crawler):
     def _parse_post(self, url):
         r = self._session.get(url=url)
         soup = BeautifulSoup(r.text, "html.parser")
-        content = ""
+        text = ""
 
-        # 1) content
+        # 1) text
 
         # 티스토리 블로그에서 글 내용에 사용되는 클래스 목록
         #! WARNING: 실험적으로 찾아낸 값으로, 상황에 따라 업데이트 필요
-        content_class = (
+        text_class = (
             "tt_article_useless_p_margin",  # https://cow5jean.tistory.com/29
             "article_view",  # https://milkbean.tistory.com/16?category=842530
             "entry-content",  # https://simyeju.tistory.com/48
@@ -51,19 +51,19 @@ class Tistory(Crawler):
         found = False
         for tag in soup.find_all("div"):
             tag_class = tag.get("class", [])
-            for ccls in content_class:
+            for ccls in text_class:
                 if ccls in tag_class:
-                    content = tag.text.strip()
-                    content = re.sub(r"\s+", " ", content)  # compress whitespaces
+                    text = tag.text.strip()
+                    text = re.sub(r"\s+", " ", text)  # compress whitespaces
                     found = True
                     break
             if found:
                 break
         else:  # not found
-            self._log(f"NOT FOUND: content ({url})", False)
+            self._log(f"NOT FOUND: text ({url})", False)
 
         return {
-            "content": content,
+            "text": text,
         }
 
     def crawl(self, query, start_date, end_date, full=True):

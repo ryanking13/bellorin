@@ -43,7 +43,7 @@ class NaverCafe(Crawler):
         r = self._session.get(url=url)
         article_url = re.findall(r"\$\(\"cafe_main\"\)\.src = \"(.+)\";", r.text)
         if not article_url:
-            self._log(f"Failed parsing content ({url})", False)
+            self._log(f"Failed parsing text ({url})", False)
             raise Exception()
 
         article_url = f"https:{article_url[0]}"
@@ -54,7 +54,7 @@ class NaverCafe(Crawler):
 
         username = ""
         created = ""
-        content = ""
+        text = ""
         comments = []
         cafe_id = re.findall(r"clubid=(\d+)", article_url)[0]
         article_id = re.findall(r"articleid=(\d+)", article_url)[0]
@@ -85,17 +85,17 @@ class NaverCafe(Crawler):
         else:  # not found
             self._log(f"NOT FOUND: created ({article_url})", False)
 
-        # 3) content
+        # 3) text
 
         # e.g. <div class="tbody m-tcol-c" id="tbody">
         for tag in soup.find_all("div"):
             _id = tag.get("id", "")
             if _id == "tbody":
-                content = tag.text.strip()
-                content = re.sub(r"\s+", " ", content)  # compress whitespaces
+                text = tag.text.strip()
+                text = re.sub(r"\s+", " ", text)  # compress whitespaces
                 break
         else:  # not found
-            self._log(f"NOT FOUND: content ({article_url})", False)
+            self._log(f"NOT FOUND: text ({article_url})", False)
 
         # 4) comments
         comment_url = "https://cafe.naver.com/CommentView.nhn"
@@ -109,7 +109,7 @@ class NaverCafe(Crawler):
         for c in _comments:
             cmt = {
                 "id": c["commentid"],
-                "content": c["content"],
+                "text": c["content"],
                 "username": c["writerid"],
                 "nickname": c["writernick"],
                 "replies": [],
@@ -134,7 +134,7 @@ class NaverCafe(Crawler):
         return {
             "username": username,
             "created": created,
-            "content": content,
+            "text": text,
             "cafeId": cafe_id,
             "article_id": article_id,
             "comments": comments,

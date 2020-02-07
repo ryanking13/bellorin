@@ -57,7 +57,7 @@ class Instagram(Crawler):
                             "username": comment.owner.username,
                             "text": comment.text,
                             "created": comment.created_at_utc.isoformat(),
-                            "answers": [
+                            "replies": [
                                 {
                                     "id": answer.id,
                                     "userId": answer.owner.userid,

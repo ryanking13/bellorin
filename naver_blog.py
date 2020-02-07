@@ -46,7 +46,7 @@ class NaverBlog(Crawler):
 
         title = ""
         nickname = ""
-        content = ""
+        text = ""
         comments = []
         blog_id = re.findall(r"var blogNo = \'(\d+)\';", r.text)[0]
 
@@ -91,11 +91,11 @@ class NaverBlog(Crawler):
         else:  # not found
             self._log(f"NOT FOUND: nickname ({username}/{post_id})", False)
 
-        # 3) content
+        # 3) text
 
         # 네이버 블로그에서 글 내용에 사용되는 클래스 목록
         #! WARNING: 실험적으로 찾아낸 값으로, 상황에 따라 업데이트 필요
-        content_class = (
+        text_class = (
             "__se_component_area",  # 네이버 포스트 스타일 블로그: <div class="se_component_wrap sect_dsc __se_component_area">
             "se-main-container",  # 네이버 포스트 스타일 블로그: <div class="se-main-container">
             "post-view",  # 예전 버전 블로그: <div id="post-view{post_id}" class="post-view pcol2 _param(1) _postViewArea{post_id}">
@@ -103,16 +103,16 @@ class NaverBlog(Crawler):
         found = False
         for tag in soup.find_all("div"):
             tag_class = tag.get("class", [])
-            for ccls in content_class:
-                if ccls in tag_class:
-                    content = tag.text.strip()
-                    content = re.sub(r"\s+", " ", content)  # compress whitespaces
+            for tcls in text_class:
+                if tcls in tag_class:
+                    text = tag.text.strip()
+                    text = re.sub(r"\s+", " ", text)  # compress whitespaces
                     found = True
                     break
             if found:
                 break
         else:  # not found
-            self._log(f"NOT FOUND: content ({username}/{post_id})", False)
+            self._log(f"NOT FOUND: text ({username}/{post_id})", False)
 
         # 4) comments
         comment_url = "https://apis.naver.com/commentBox/cbox/web_naver_list_jsonp.json"
@@ -151,7 +151,7 @@ class NaverBlog(Crawler):
             for c in _comments:
                 cmt = {
                     "id": c["commentNo"],
-                    "content": c["contents"],
+                    "text": c["contents"],
                     "username": c["profileUserId"],
                     "nickname": c["userName"],
                     "created": c["regTime"],
@@ -166,7 +166,7 @@ class NaverBlog(Crawler):
                             break
                     else:
                         self._log(
-                            f"Parent comment not exists: ({username}/{post_id} {cmt['content']})",
+                            f"Parent comment not exists: ({username}/{post_id} {cmt['text']})",
                             False,
                         )
                 # 댓글
@@ -176,7 +176,7 @@ class NaverBlog(Crawler):
         return {
             "title": title,
             "nickname": nickname,
-            "content": content,
+            "text": text,
             "blogId": blog_id,
             "comments": comments,
         }
