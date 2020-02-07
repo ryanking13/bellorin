@@ -55,6 +55,9 @@ class NaverCafe(Crawler):
         username = ""
         created = ""
         content = ""
+        comments = []
+        cafe_id = re.findall(r"clubid=(\d+)", article_url)[0]
+        article_id = re.findall(r"articleid=(\d+)", article_url)[0]
 
         # 1) username
 
@@ -94,10 +97,47 @@ class NaverCafe(Crawler):
         else:  # not found
             self._log(f"NOT FOUND: content ({article_url})", False)
 
+        # 4) comments
+        comment_url = "https://cafe.naver.com/CommentView.nhn"
+        params = {
+            "search.clubid": cafe_id,
+            "search.articleid": article_id,
+        }
+        r = self._session.post(url=comment_url, data=params)
+
+        _comments = r.json()["result"]["list"]
+        for c in _comments:
+            cmt = {
+                "id": c["commentid"],
+                "content": c["content"],
+                "username": c["writerid"],
+                "nickname": c["writernick"],
+                "replies": [],
+            }
+
+            # if deleted, no date information
+            if not c["deleted"]:
+                cmt["created"] = datetime.strptime(
+                    c["writedt"], "%Y.%m.%d. %H:%M"
+                ).isoformat()
+
+            # 답글
+            if c["refComment"]:
+                for _cmt in comments:
+                    if _cmt["id"] == c["refcommentid"]:
+                        _cmt["replies"].append(cmt)
+                        break
+            # 댓글
+            else:
+                comments.append(cmt)
+
         return {
             "username": username,
             "created": created,
             "content": content,
+            "cafeId": cafe_id,
+            "article_id": article_id,
+            "comments": comments,
         }
 
     def crawl(self, query, start_date, end_date):
@@ -140,6 +180,7 @@ class NaverCafe(Crawler):
 
                 post_data = {
                     "id": postId,
+                    "title": item["title"],
                     "cafename": item["cafename"],
                     "cafeUrl": item["cafeurl"],
                     "postUrl": item["link"],
@@ -156,9 +197,8 @@ class NaverCafe(Crawler):
                     post_data.update(post_full)
                     time.sleep(0.1)  # prevent massive request
                 except Exception as e:
-                    self._log(f"Parsing cafe failed {postId}", False)
+                    self._log(f"Parsing cafe failed {item['link']}", False)
                     self._log(e)
-                    pass
 
                 postdate = datetime.strptime(post_data["created"], "%Y-%m-%dT%H:%M:%S")
                 if postdate.date() < start_date or postdate.date() > end_date:
