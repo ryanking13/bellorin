@@ -98,4 +98,4 @@ python run.py thornapple -o out.log
 
 ### Miscellaneous
 
-- __Bellorin__ 은 _이영도_ 의 소설 [폴라리스 랩소디](https://en.wikipedia.org/wiki/Lee_Yeongdo#Other_novels)의 등장인물로, 세상의 모든 진실을 아는 자입니다.
+- __Bellorin__ 은 _이영도_ 의 소설 [폴라리스 랩소디](https://en.wikipedia.org/wiki/Lee_Yeongdo#Other_novels)의 등장인물입니다.
