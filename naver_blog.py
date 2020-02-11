@@ -7,6 +7,7 @@ import logging
 import pathlib
 import requests
 from bs4 import BeautifulSoup
+from textrankr import TextRank
 from crawler import Crawler
 import config
 
@@ -21,7 +22,7 @@ class NaverBlog(Crawler):
         self._logger = logging.getLogger(
             config.LOGGER_NAME
         )  # when packaged, change this to logger.getLogger(__name__)
-        self._analyser = None
+        self._analyser = NaverBlogAnalyser()
         self._session = requests.session()
 
         self._session.headers.update(
@@ -284,6 +285,13 @@ class NaverBlog(Crawler):
         self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
     ):
         posts = self.crawl(query, start_date, end_date)
+
+        if analyse:
+            self._log(f"Analysing result...")
+            analysed_data = self.analyse(data=posts)
+            for post, _data in zip(posts, analysed_data):
+                post.update(_data)
+
         if save:
             dump = json.dumps(posts, indent=2, ensure_ascii=False)
             directory = pathlib.Path(save_dir)
@@ -296,22 +304,6 @@ class NaverBlog(Crawler):
             self._log(f"Saving results to {str(f)}", False)
             with open(str(f), "w", encoding="utf-8") as f:
                 f.write(dump)
-
-        # TODO
-        # if analyse:
-        #     self._log(f"Analysing result...")
-        #     analysed_data = self.analyse()
-        #     dump = json.dumps(analysed_data, indent=2, ensure_ascii=False)
-
-        #     diectory = pathlib.Path(save_dir)
-        #     directory.mkdir(parents=True, exist_ok=True)
-        #     f = (
-        #         diectory
-        #         / f"{self.__class__.__name__}_{query}_{start_date}~{end_date}_analysed.json"
-        #     )
-        #     self._log(f"Saving analysed results to {str(f)}", False)
-        #     with open(str(f), "w", encoding="utf-8") as f:
-        #         f.write(dump)
 
         # for concurrent.futures to recognize class
         return f"{self.__class__.__name__}: {query} {start_date}~{end_date}"
@@ -335,3 +327,20 @@ class NaverBlog(Crawler):
             self._logger.debug(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
         else:
             self._logger.info(f"[*] {self.__class__.__name__} ({self._query}): {msg}")
+
+
+class NaverBlogAnalyser:
+    def __init__(self):
+        pass
+
+    def _key_sentences(self, datum, n=1):
+        text = datum["text"]
+        textrank = TextRank(text)
+        return textrank.summarize(n)
+
+    def run(self, data):
+        analysed_data = []
+        for d in data:
+            analysed_data.append({"key_sentences": self._key_sentences(d)})
+
+        return analysed_data
