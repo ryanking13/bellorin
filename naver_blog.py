@@ -180,6 +180,7 @@ class NaverBlog(Crawler):
             "text": text,
             "blogId": blog_id,
             "comments": comments,
+            "comments_cnt": len(comments),
         }
 
     def crawl(self, query, start_date, end_date, full=True):

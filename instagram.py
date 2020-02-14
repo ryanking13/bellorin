@@ -72,6 +72,9 @@ class Instagram(Crawler):
                     ],
                 }
 
+                # get_comments returns a generator, therefore comments_cnt is calculated later
+                post_data["comments_cnt"] = len(post_data["comments"])
+
                 posts.append(post_data)
 
         # when there is no post at all

@@ -138,6 +138,7 @@ class NaverCafe(Crawler):
             "cafeId": cafe_id,
             "article_id": article_id,
             "comments": comments,
+            "comments_cnt": len(comments),
         }
 
     def crawl(self, query, start_date, end_date):
