@@ -23,7 +23,7 @@ class Instagram(Crawler):
         )  # when packaged, change this to logger.getLogger(__name__)
         self._analyser = InstagramAnalyser()
 
-    def crawl(self, query, start_date, end_date):
+    def crawl(self, query, start_date, end_date, main_columns_only):
         posts = []
         self._query = query
         cur_date = None
@@ -75,6 +75,13 @@ class Instagram(Crawler):
                 # get_comments returns a generator, therefore comments_cnt is calculated later
                 post_data["comments_cnt"] = len(post_data["comments"])
 
+                if main_columns_only:
+                    del post_data["profileUrl"]
+                    del post_data["postUrl"]
+                    del post_data["imageUrl"]
+                    del post_data["userId"]
+                    del post_data["comments"]
+
                 posts.append(post_data)
 
         # when there is no post at all
@@ -87,9 +94,16 @@ class Instagram(Crawler):
         return posts
 
     def run(
-        self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
+        self,
+        query,
+        start_date,
+        end_date,
+        save=True,
+        analyse=True,
+        save_dir="save",
+        main_columns_only=True,
     ):
-        posts = self.crawl(query, start_date, end_date)
+        posts = self.crawl(query, start_date, end_date, main_columns_only)
         if save:
             dump = json.dumps(posts, indent=2, ensure_ascii=False)
             directory = pathlib.Path(save_dir)

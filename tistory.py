@@ -66,7 +66,7 @@ class Tistory(Crawler):
             "text": text,
         }
 
-    def crawl(self, query, start_date, end_date, full=True):
+    def crawl(self, query, start_date, end_date, main_columns_only, full=True):
         url = "https://dapi.kakao.com/v2/search/blog"
         display_size = 50
         params = {
@@ -133,7 +133,13 @@ class Tistory(Crawler):
                     except Exception as e:
                         self._log(f"Parsing blog failed {document['url']}", False)
                         self._log(e)
-                        pass
+
+                if main_columns_only:
+                    del post_data["blogname"]
+                    del post_data["blogUrl"]
+                    del post_data["postUrl"]
+                    del post_data["summary"]
+                    del post_data["thumbnailUrl"]
 
                 posts.append(post_data)
 
@@ -151,9 +157,16 @@ class Tistory(Crawler):
         return posts
 
     def run(
-        self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
+        self,
+        query,
+        start_date,
+        end_date,
+        save=True,
+        analyse=True,
+        save_dir="save",
+        main_columns_only=True,
     ):
-        posts = self.crawl(query, start_date, end_date)
+        posts = self.crawl(query, start_date, end_date, main_columns_only)
         if save:
             dump = json.dumps(posts, indent=2, ensure_ascii=False)
             directory = pathlib.Path(save_dir)

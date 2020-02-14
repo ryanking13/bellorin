@@ -141,7 +141,7 @@ class NaverCafe(Crawler):
             "comments_cnt": len(comments),
         }
 
-    def crawl(self, query, start_date, end_date):
+    def crawl(self, query, start_date, end_date, main_columns_only):
         url = "https://openapi.naver.com/v1/search/cafearticle.json"
         display_size = 100
         params = {
@@ -212,6 +212,15 @@ class NaverCafe(Crawler):
                     cur_date = postdate.date()
                     self._log(f"crawling on date={cur_date}")
 
+                if main_columns_only:
+                    del post_data["cafename"]
+                    del post_data["cafeUrl"]
+                    del post_data["postUrl"]
+                    del post_data["summary"]
+                    del post_data["cafeId"]
+                    del post_data["comments"]
+                    del post_data["article_id"]
+
                 posts.append(post_data)
 
             if stop:
@@ -235,9 +244,16 @@ class NaverCafe(Crawler):
         return posts
 
     def run(
-        self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
+        self,
+        query,
+        start_date,
+        end_date,
+        save=True,
+        analyse=True,
+        save_dir="save",
+        main_columns_only=True,
     ):
-        posts = self.crawl(query, start_date, end_date)
+        posts = self.crawl(query, start_date, end_date, main_columns_only)
         if save:
             dump = json.dumps(posts, indent=2, ensure_ascii=False)
             directory = pathlib.Path(save_dir)

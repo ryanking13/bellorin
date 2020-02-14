@@ -183,7 +183,7 @@ class NaverBlog(Crawler):
             "comments_cnt": len(comments),
         }
 
-    def crawl(self, query, start_date, end_date, full=True):
+    def crawl(self, query, start_date, end_date, main_columns_only, full=True):
         url = "https://openapi.naver.com/v1/search/blog.json"
         display_size = 100
         params = {
@@ -259,7 +259,17 @@ class NaverBlog(Crawler):
                     except Exception as e:
                         self._log(f"Parsing blog failed {username} / {post_id}", False)
                         self._log(e)
-                        pass
+
+                if main_columns_only:
+                    del post_data["blogname"]
+                    del post_data["blogUrl"]
+                    del post_data["postUrl"]
+                    del post_data["summary"]
+                    if full:
+                        del post_data["nickname"]
+                        del post_data["blogId"]
+                        del post_data["comments"]
+
                 posts.append(post_data)
 
             if stop:
@@ -283,9 +293,16 @@ class NaverBlog(Crawler):
         return posts
 
     def run(
-        self, query, start_date, end_date, save=True, analyse=True, save_dir="save"
+        self,
+        query,
+        start_date,
+        end_date,
+        save=True,
+        analyse=True,
+        save_dir="save",
+        main_columns_only=True,
     ):
-        posts = self.crawl(query, start_date, end_date)
+        posts = self.crawl(query, start_date, end_date, main_columns_only)
 
         if analyse:
             self._log(f"Analysing result...")

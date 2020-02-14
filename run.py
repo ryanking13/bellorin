@@ -67,6 +67,15 @@ def parse_args():
         help="Do not analyse scrapped data after crawling",
     )
 
+    parser.add_argument(
+        "--all-columns",
+        action="store_const",
+        default=False,
+        const=True,
+        dest="all_columns",
+        help="Add additional columns to scrapped data",
+    )
+
     return parser.parse_args()
 
 
@@ -99,16 +108,18 @@ def main():
         futures.extend(
             [
                 pool.submit(
-                    lambda query, start_date, end_date, analyse: c.run(
+                    lambda query, start_date, end_date, analyse, main_columns_only: c.run(
                         query=query,
                         start_date=start_date,
                         end_date=end_date,
                         analyse=analyse,
+                        main_columns_only=main_columns_only,
                     ),
                     q,
                     start_date,
                     end_date,
                     args.analyse,
+                    not args.all_columns,
                 )
                 for c in crawling_targets
             ]
