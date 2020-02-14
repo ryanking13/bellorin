@@ -21,7 +21,7 @@ Keyword based Social Media crawler
 
 ```sh
 usage: run.py [-h] [-v] [-t TARGETS [TARGETS ...]] [-d MAX_DAYS] [-o OUTPUT]
-              [--no-analyse]
+              [--no-analyse] [--all-columns]
               query [query ...]
 
 positional arguments:
@@ -39,6 +39,7 @@ optional arguments:
                         Set output log file. if not specified, log will be
                         printed only to stdout
   --no-analyse          Do not analyse scrapped data after crawling
+  --all-columns         Add additional columns to scrapped data
 ```
 
 ### Prerequisite
