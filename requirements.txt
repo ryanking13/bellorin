@@ -34,5 +34,5 @@ textrankr==0.3
 toml==0.10.0
 tweepy==3.8.0
 typed-ast==1.4.1
-urllib3==1.25.8
+urllib3==1.26.5
 wrapt==1.11.2
